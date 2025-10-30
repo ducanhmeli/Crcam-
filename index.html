@@ -442,7 +442,7 @@
         <button type="button" id="submitBtn">Nộp bài</button>
         <button type="button" id="resetBtn" class="reset">Làm lại</button>
         <div class="download small download">
-          <button id="downloadBtn" type="button">Tải file (.html)</button>
+          <button id="downloadBtn" type="button"></button>
         </div>
       </div>
 
@@ -522,7 +522,7 @@ document.getElementById('downloadBtn').addEventListener('click', function(){
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'bai_kiem_tra_the_gioi_so.html';
+  a.download = '';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
