@@ -152,7 +152,7 @@
     // --- TRÁI ĐẤT ---
     const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
     const earthMaterial = new THREE.MeshPhongMaterial({ 
-      map: textureLoader.load('eartg.gif'),
+      map: textureLoader.load('earth.jpg'),
       specular: 0x333333,
       shininess: 15
     });
@@ -168,7 +168,7 @@
     // --- MẶT TRĂNG ---
     const moonGeometry = new THREE.SphereGeometry(0.4, 32, 32);
     const moonMaterial = new THREE.MeshPhongMaterial({
-      map: textureLoader.load('moon.gif')
+      map: textureLoader.load('moon.jpg')
     });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(MOON_ORBIT_RADIUS, 0, 0); 
@@ -222,5 +222,6 @@
   </script>
 </body>
 </html>
+
 
 
