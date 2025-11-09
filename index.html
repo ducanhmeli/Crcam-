@@ -70,7 +70,7 @@
   <!-- 🌍 Dòng chữ dưới cùng -->
   <div id="footer-text">
     Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng<br>
-    Tác giả: Nguyễn Đức Anh | Người hướng dẫn: Nguyễn Duy Quyền
+    Tác giả: Nguyễn Đức Anh lớp 9A | Người hướng dẫn: Nguyễn Duy Quyền
   </div>
 
   <script>
@@ -95,7 +95,7 @@
     scene.add(sun);
 
     // 🌍 Trái đất
-    const earthTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg');
+    const earthTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/earth.jpg');
     const earth = new THREE.Mesh(
       new THREE.SphereGeometry(0.6, 32, 32),
       new THREE.MeshStandardMaterial({ map: earthTexture })
@@ -151,3 +151,4 @@
   </script>
 </body>
 </html>
+
