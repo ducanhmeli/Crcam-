@@ -9,7 +9,6 @@
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   
   <style>
-    /* ... (CSS giữ nguyên) ... */
     body {
       margin: 0;
       height: 100vh;
@@ -92,24 +91,19 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- CÁC THAM SỐ VẬT LÝ VÀ TỐC ĐỘ (ĐÃ CẬP NHẬT) ---
+    // --- CÁC THAM SỐ VẬT LÝ VÀ TỐC ĐỘ (ĐÃ GIẢM NHẸ) ---
     const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
     const ORBIT_RADIUS = 30; 
     const MOON_ORBIT_RADIUS = 5; 
     
-    // Tốc độ góc (radian/frame) - Dựa trên tỷ lệ bạn cung cấp
-    // ĐÃ TĂNG TỐC ĐỘ CƠ SỞ lên 0.0003 (gấp 3 lần 0.0001)
-    const BASE_SPEED = 0.0003; 
-    const SUN_ROT_SPEED = 0.00003; 
+    // Giảm tốc độ cơ sở để quay chậm hơn
+    const BASE_SPEED = 0.0002; 
+    const SUN_ROT_SPEED = 0.00002; 
 
-    // Tốc độ Quỹ đạo Trái Đất (TE=1)
+    // Tốc độ quỹ đạo & quay
     const EARTH_ORBIT_SPEED = BASE_SPEED * 1; 
-
-    // Tốc độ Quay quanh Trục Trái Đất (TR=365.25)
     const EARTH_ROT_SPEED = BASE_SPEED * 365.25; 
-
-    // Tốc độ Quỹ đạo Mặt Trăng (TM=12.17)
-    const MOON_ORBIT_SPEED = BASE_SPEED * 12.17; 
+    const MOON_ORBIT_SPEED = BASE_SPEED * 10; // giảm nhẹ so với trước (12.17 → 10)
 
     let simulationSpeed = 1.0; 
     let isRunning = true;
@@ -117,7 +111,6 @@
     const textureLoader = new THREE.TextureLoader();
 
     // --- TẠO VẬT THỂ 3D VÀ ÁNH SÁNG ---
-    
     // 1. MẶT TRỜI
     const sunGeometry = new THREE.SphereGeometry(4, 32, 32); 
     const sunMaterial = new THREE.MeshBasicMaterial({ 
@@ -127,17 +120,14 @@
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sun);
     
-    // Ánh sáng điểm TỪ Mặt Trời (PointLight)
-    const light = new THREE.PointLight(0xffffff, 8, 0); // Cường độ 8 (rất mạnh)
+    const light = new THREE.PointLight(0xffffff, 8, 0);
     sun.add(light); 
     
-    // Ánh sáng môi trường (AmbientLight) RẤT THẤP
     const ambientLight = new THREE.AmbientLight(0x050505); 
     scene.add(ambientLight);
 
     // 2. TRÁI ĐẤT
     const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
-    // MeshPhongMaterial để hiển thị đổ bóng động
     const earthMaterial = new THREE.MeshPhongMaterial({ 
         map: textureLoader.load('eartg.gif'),
         specular: 0x333333,
@@ -165,29 +155,26 @@
     
     const moonOrbit = new THREE.Object3D();
     moonOrbit.add(moon);
-    earthMesh.add(moonOrbit); 
+    earthOrbit.add(moonOrbit); // Đưa mặt trăng quay quanh Trái Đất thực tế hơn
 
-    // --- VẼ QUỸ ĐẠO (Orbit Paths) ---
-    // ĐÃ GIẢM OPACITY xuống 0.1
+    // --- VẼ QUỸ ĐẠO ---
     const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.1 });
     
-    // Quỹ đạo Trái Đất
     const earthOrbitGeometry = new THREE.RingGeometry(ORBIT_RADIUS - 0.05, ORBIT_RADIUS + 0.05, 128);
     const earthOrbitLine = new THREE.Line(earthOrbitGeometry, orbitMaterial);
     earthOrbitLine.rotation.x = Math.PI / 2; 
     scene.add(earthOrbitLine);
 
-    // Quỹ đạo Mặt Trăng
     const moonOrbitGeometry = new THREE.RingGeometry(MOON_ORBIT_RADIUS - 0.02, MOON_ORBIT_RADIUS + 0.02, 64);
     const moonOrbitLine = new THREE.Line(moonOrbitGeometry, orbitMaterial);
     moonOrbitLine.rotation.x = Math.PI / 2; 
     earthMesh.add(moonOrbitLine); 
 
-    // Thiết lập Camera
+    // --- Camera ---
     camera.position.set(0, ORBIT_RADIUS * 1.5, ORBIT_RADIUS * 1.5); 
     camera.lookAt(sun.position); 
 
-    // --- VÒNG LẶP MÔ PHỎNG (ANIMATION LOOP) ---
+    // --- ANIMATION LOOP ---
     function animate() {
       requestAnimationFrame(animate);
 
@@ -196,12 +183,8 @@
       if (isRunning) {
         const speed = simulationSpeed; 
 
-        // 1. Quay quanh trục (Tự quay)
         sun.rotation.y += SUN_ROT_SPEED * speed;
         earthMesh.rotation.y += EARTH_ROT_SPEED * speed;
-        moon.rotation.y += EARTH_ROT_SPEED * speed; 
-
-        // 2. Quay Quỹ đạo
         earthOrbit.rotation.y += EARTH_ORBIT_SPEED * speed;
         moonOrbit.rotation.y += MOON_ORBIT_SPEED * speed;
       }
@@ -211,7 +194,7 @@
     
     animate();
 
-    // --- LOGIC ĐIỀU KHIỂN ---
+    // --- ĐIỀU KHIỂN ---
     const toggleButton = document.getElementById('toggleButton');
     const speedSlider = document.getElementById('speedSlider');
 
@@ -226,5 +209,4 @@
     
   </script>
 </body>
-
 </html>
