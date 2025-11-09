@@ -1,193 +1,236 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mô phỏng Hệ Mặt Trời 3D - Three.js</title>
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    color: white;
-    background: radial-gradient(ellipse at center, #000010, #000000 80%);
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng Hệ Mặt Trời 3D</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+    }
 
-  canvas {
-    display: block;
-  }
+    #controlPanel {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.8em 1em;
+      border-radius: 0.8em;
+      font-size: 0.75em;
+      width: 160px;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 200;
+      transition: all 0.3s ease;
+    }
 
-  /* Giữ nguyên bảng điều khiển Glassmorphism */
-  #controlPanel {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 0.8em 1em;
-    border-radius: 0.8em;
-    font-size: 0.75em;
-    width: 160px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index: 200;
-  }
-  #controlPanel h3 { margin: 0 0 0.5em; text-align: center; color: #aefcff; }
-  label { display: block; margin-top: 0.3em; }
-  #dataBox {
-    margin-top: 0.4em;
-    font-size: 0.7em;
-    background: rgba(0, 255, 255, 0.08);
-    padding: 0.4em;
-    border-radius: 0.4em;
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    display: none;
-  }
-</style>
+    #controlPanel:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      border-color: rgba(0, 255, 255, 0.4);
+    }
+
+    #controlPanel h3 {
+      margin: 0 0 0.5em 0;
+      font-size: 0.95em;
+      text-align: center;
+      font-weight: 600;
+      color: #aefcff;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 0.3em;
+    }
+
+    .control-group {
+      margin: 0.6em 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.2em;
+      color: #e8faff;
+      font-weight: 500;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00d8ff;
+      cursor: pointer;
+    }
+
+    #speedLabel {
+      display: block;
+      text-align: right;
+      font-weight: bold;
+      color: #9effff;
+      margin-top: 0.1em;
+    }
+
+    #dataBox {
+      margin-top: 0.4em;
+      font-size: 0.7em;
+      background: rgba(0, 255, 255, 0.08);
+      padding: 0.4em;
+      border-radius: 0.4em;
+      white-space: pre;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    #note {
+      position: fixed;
+      bottom: 8px;
+      right: 12px;
+      font-size: 0.8em;
+      color: rgba(255, 255, 255, 0.85);
+      font-style: italic;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.3em 0.6em;
+      border-radius: 0.5em;
+      backdrop-filter: blur(4px);
+      z-index: 101;
+    }
+  </style>
 </head>
 <body>
+  <div id="controlPanel">
+    <h3>🛰️ Điều khiển</h3>
 
-<div id="controlPanel">
-  <h3>🛰️ Điều khiển</h3>
-  <label>Tốc độ <input type="range" id="speedRange" min="0.2" max="10" step="0.1" value="1"></label>
-  <span id="speedLabel">1.0x</span>
-  <label><input type="checkbox" id="showOrbit" checked> Quỹ đạo</label>
-  <label><input type="checkbox" id="showData"> Dữ liệu</label>
-  <div id="dataBox">t=0s<br>θ=0°<br>Pha: 🌑</div>
-</div>
+    <div class="control-group">
+      <label for="speedRange">Tốc độ</label>
+      <input type="range" id="speedRange" min="0.1" max="10" step="0.1" value="1">
+      <span id="speedLabel">1.0x</span>
+    </div>
 
-<!-- Three.js -->
-<script src="https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.min.js"></script>
+    <div class="control-group">
+      <label><input type="checkbox" id="showOrbit" checked> Quỹ đạo</label>
+    </div>
 
-<script>
-let scene, camera, renderer;
-let sun, earth, moon, earthOrbit, moonOrbit;
-let speed = 1.0;
-let startTime = performance.now();
-const dataBox = document.getElementById('dataBox');
-const showData = document.getElementById('showData');
-const speedSlider = document.getElementById('speedRange');
-const speedLabel = document.getElementById('speedLabel');
+    <div class="control-group">
+      <label><input type="checkbox" id="showData"> Dữ liệu</label>
+    </div>
 
-init();
-animate();
+    <div id="dataBox" style="display:none;">
+      t=0.0s<br>θE=0°<br>θM=0°<br>Pha: 🌑 Trăng non
+    </div>
+  </div>
 
-function init() {
-  scene = new THREE.Scene();
+  <p id="note">🔭 Mô hình 3D khái niệm – không theo tỷ lệ vật lý thực.</p>
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 25, 60);
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  <script>
+    // Cảnh, camera, renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-  // Ánh sáng
-  const pointLight = new THREE.PointLight(0xffffff, 2, 500);
-  scene.add(pointLight);
+    // Ánh sáng
+    const pointLight = new THREE.PointLight(0xffffff, 2);
+    scene.add(pointLight);
 
-  // Nền sao
-  const starTexture = new THREE.TextureLoader().load('sao.jpg');
-  const starGeometry = new THREE.SphereGeometry(200, 64, 64);
-  const starMaterial = new THREE.MeshBasicMaterial({ map: starTexture, side: THREE.BackSide });
-  const starField = new THREE.Mesh(starGeometry, starMaterial);
-  scene.add(starField);
+    // 🌞 Mặt trời
+    const sunTexture = new THREE.TextureLoader().load('sun.jpg');
+    const sun = new THREE.Mesh(
+      new THREE.SphereGeometry(2, 64, 64),
+      new THREE.MeshBasicMaterial({ map: sunTexture })
+    );
+    scene.add(sun);
 
-  // Mặt Trời
-  const sunTexture = new THREE.TextureLoader().load('sun.jpg');
-  const sunMat = new THREE.MeshBasicMaterial({ map: sunTexture });
-  sun = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 64), sunMat);
-  scene.add(sun);
+    // 🌍 Trái đất
+    const earthTexture = new THREE.TextureLoader().load('eartg.gif');
+    const earth = new THREE.Mesh(
+      new THREE.SphereGeometry(0.8, 64, 64),
+      new THREE.MeshStandardMaterial({ map: earthTexture })
+    );
+    const earthOrbit = new THREE.Object3D();
+    earth.position.x = 6;
+    earthOrbit.add(earth);
+    scene.add(earthOrbit);
 
-  // Trái Đất
-  const earthTexture = new THREE.TextureLoader().load('eartg.gif');
-  const earthMat = new THREE.MeshPhongMaterial({
-    map: earthTexture,
-    shininess: 10
-  });
-  earth = new THREE.Mesh(new THREE.SphereGeometry(1.5, 64, 64), earthMat);
+    // 🌕 Mặt trăng
+    const moonTexture = new THREE.TextureLoader().load('moon.gif');
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 64, 64),
+      new THREE.MeshStandardMaterial({ map: moonTexture })
+    );
+    const moonOrbit = new THREE.Object3D();
+    moon.position.x = 1.5;
+    moonOrbit.add(moon);
+    earth.add(moonOrbit);
 
-  // Mặt Trăng
-  const moonTexture = new THREE.TextureLoader().load('moon.gif');
-  const moonMat = new THREE.MeshPhongMaterial({
-    map: moonTexture,
-    shininess: 5
-  });
-  moon = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), moonMat);
+    // 🚀 Camera
+    camera.position.z = 15;
 
-  // Tạo quỹ đạo
-  earthOrbit = new THREE.Object3D();
-  moonOrbit = new THREE.Object3D();
-  scene.add(earthOrbit);
-  earthOrbit.add(earth);
-  earth.add(moonOrbit);
-  moonOrbit.add(moon);
+    // 💫 Biến điều khiển
+    const speedSlider = document.getElementById('speedRange');
+    const speedLabel = document.getElementById('speedLabel');
+    const showOrbit = document.getElementById('showOrbit');
+    const showData = document.getElementById('showData');
+    const dataBox = document.getElementById('dataBox');
 
-  earth.position.set(15, 0, 0);
-  moon.position.set(3, 0, 0);
+    let speed = 1;
 
-  // Orbit helper (hiển thị quỹ đạo)
-  const orbitMat = new THREE.LineBasicMaterial({ color: 0x44ccff });
-  const orbitGeo = new THREE.BufferGeometry().setFromPoints(createCirclePoints(15, 128));
-  const earthOrbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
-  scene.add(earthOrbitLine);
+    speedSlider.addEventListener('input', () => {
+      speed = parseFloat(speedSlider.value);
+      speedLabel.textContent = speed.toFixed(1) + "x";
+    });
 
-  const moonOrbitGeo = new THREE.BufferGeometry().setFromPoints(createCirclePoints(3, 64));
-  const moonOrbitLine = new THREE.LineLoop(moonOrbitGeo, orbitMat);
-  moonOrbit.add(moonOrbitLine);
+    showData.addEventListener('change', () => {
+      dataBox.style.display = showData.checked ? 'block' : 'none';
+    });
 
-  window.addEventListener('resize', onWindowResize);
+    // 🌑 Hàm xác định pha Mặt Trăng
+    function getMoonPhaseSymbol(angle) {
+      if (angle < 45 || angle >= 315) return "🌑 Trăng non";
+      if (angle < 135) return "🌓 Bán nguyệt đầu";
+      if (angle < 225) return "🌕 Trăng tròn";
+      return "🌗 Bán nguyệt cuối";
+    }
 
-  // Điều khiển
-  speedSlider.addEventListener('input', () => {
-    speed = parseFloat(speedSlider.value);
-    speedLabel.textContent = speed.toFixed(1) + "x";
-  });
-}
+    // 🌀 Render Loop
+    let start = Date.now();
+    function animate() {
+      requestAnimationFrame(animate);
 
-function createCirclePoints(radius, segments) {
-  const pts = [];
-  for (let i = 0; i <= segments; i++) {
-    const theta = (i / segments) * 2 * Math.PI;
-    pts.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
-  }
-  return pts;
-}
+      const t = (Date.now() - start) / 1000;
+      earthOrbit.rotation.y = t * 0.3 * speed;
+      earth.rotation.y += 0.02 * speed;
+      moonOrbit.rotation.y = t * 2 * speed;
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+      // Dữ liệu hiển thị
+      if (showData.checked) {
+        const earthAngle = (earthOrbit.rotation.y * 180 / Math.PI) % 360;
+        const moonAngle = (moonOrbit.rotation.y * 180 / Math.PI) % 360;
+        const phaseAngle = (moonAngle - earthAngle + 360) % 360;
+        const phase = getMoonPhaseSymbol(phaseAngle);
+        dataBox.innerHTML =
+          `t=${t.toFixed(1)}s<br>` +
+          `θE=${earthAngle.toFixed(1)}°<br>` +
+          `θM=${moonAngle.toFixed(1)}°<br>` +
+          `Pha: ${phase}`;
+      }
 
-function animate() {
-  requestAnimationFrame(animate);
-  const now = (performance.now() - startTime) / 1000 * speed;
+      renderer.render(scene, camera);
+    }
 
-  // Quay quanh Mặt Trời & Mặt Trăng
-  earthOrbit.rotation.y = now * (Math.PI * 2 / 36.5);
-  moonOrbit.rotation.y = now * (Math.PI * 2 / 2.7);
-  earth.rotation.y += 0.01 * speed;
-  moon.rotation.y += 0.005 * speed;
+    animate();
 
-  // Cập nhật dữ liệu
-  if (showData.checked) {
-    const earthAngle = ((now * 360) / 36.5) % 360;
-    const moonAngle = ((now * 360) / 2.7) % 360;
-    const phaseAngle = (moonAngle - earthAngle + 360) % 360;
-    let phase = "🌑";
-    if (phaseAngle < 45 || phaseAngle >= 315) phase = "🌑 Trăng non";
-    else if (phaseAngle < 135) phase = "🌓 Bán nguyệt đầu";
-    else if (phaseAngle < 225) phase = "🌕 Trăng tròn";
-    else phase = "🌗 Bán nguyệt cuối";
-    dataBox.style.display = "block";
-    dataBox.innerHTML = `t=${now.toFixed(1)}s<br>θE=${earthAngle.toFixed(1)}°<br>θM=${moonAngle.toFixed(1)}°<br>Pha: ${phase}`;
-  } else dataBox.style.display = "none";
-
-  renderer.render(scene, camera);
-}
-</script>
+    // 🔄 Responsive
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
 </body>
 </html>
