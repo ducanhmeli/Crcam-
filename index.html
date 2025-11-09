@@ -26,7 +26,7 @@
 
     .control-btn {
       position: absolute;
-      bottom: 30px;
+      bottom: 60px;
       right: 30px; 
       background-color: rgba(255, 255, 255, 0.2);
       color: #fff;
@@ -47,7 +47,7 @@
 
     #controls {
       position: absolute;
-      bottom: 80px;
+      bottom: 110px;
       right: 30px; 
       background-color: rgba(0, 0, 0, 0.4);
       padding: 10px 20px;
@@ -56,6 +56,31 @@
       z-index: 100;
       display: flex;
       align-items: center;
+    }
+
+    /* 🔽 Dòng chữ chạy ở cuối màn hình */
+    #marquee-text {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      color: #00ffea;
+      font-size: 1.1em;
+      font-family: "Segoe UI", sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      z-index: 200;
+      text-shadow: 0 0 10px #00ffff;
+    }
+
+    #marquee-text span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 25s linear infinite;
+    }
+
+    @keyframes marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 </head>
@@ -69,6 +94,11 @@
   </div>
 
   <button class="control-btn" id="toggleButton">⏸️ Dừng</button>
+
+  <!-- 🔽 Dòng chữ chạy -->
+  <div id="marquee-text">
+    <span>🌌 Mô Phỏng Chuyển Động Hệ Mặt Trời - Trái Đất - Mặt Trăng 🌍 | Tác giả: Nguyễn Đức Anh 9A | Giáo Viên Hướng Dẫn: Nguyễn Duy Quyền 🌞</span>
+  </div>
 
   <script>
     // --- KHỞI TẠO THREE.JS ---
@@ -90,10 +120,10 @@
 
     // --- ẢNH NỀN VŨ TRỤ ---
     const textureLoader = new THREE.TextureLoader();
-    const spaceTexture = textureLoader.load('sao.jpg'); // <== ảnh nền bạn đặt cùng thư mục
+    const spaceTexture = textureLoader.load('space-bg.jpg'); // ảnh nền (đặt cùng thư mục)
     scene.background = spaceTexture;
 
-    // --- CÁC THAM SỐ VẬT LÝ ---
+    // --- THAM SỐ VẬT LÝ ---
     const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
     const ORBIT_RADIUS = 30; 
     const MOON_ORBIT_RADIUS = 5; 
@@ -127,7 +157,6 @@
       shininess: 15
     });
     const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
-
     const earthOrbit = new THREE.Object3D();
     scene.add(earthOrbit); 
     const earthTilt = new THREE.Object3D();
