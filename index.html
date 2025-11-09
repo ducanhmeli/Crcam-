@@ -2,21 +2,24 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mô phỏng Hệ Mặt Trời - Trái Đất - Mặt Trăng</title>
-
-  <!-- Three.js & OrbitControls -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mô phỏng 3D Hệ Mặt Trời (Three.js)</title>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
+  
   <style>
     body {
       margin: 0;
-      overflow: hidden;
-      background: url('https://cdn.jsdelivr.net/gh/ducanhmeli/images/space-bg.jpg') no-repeat center center fixed;
-      background-size: cover;
       height: 100vh;
-      font-family: "Arial", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-image: url('https://cdn.pixabay.com/photo/2013/07/18/10/56/space-163487_1280.jpg');
+      background-size: cover;
+      background-position: center;
+      background-color: #000;
     }
 
     #scene-container {
@@ -24,28 +27,41 @@
       height: 100%;
     }
 
-    /* 🎛️ Nút dừng / tiếp tục */
-    #toggle-button {
+    .control-btn {
       position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: rgba(0, 0, 0, 0.5);
-      color: white;
-      border: 1px solid cyan;
-      border-radius: 6px;
+      bottom: 30px;
+      right: 30px; 
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      padding: 10px 25px;
+      font-size: 1.2em;
       cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
       z-index: 100;
-      text-shadow: 0 0 8px cyan;
     }
 
-    #toggle-button:hover {
-      background-color: rgba(0, 255, 255, 0.2);
+    .control-btn:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+      color: black;
     }
 
-    /* 🌟 Dòng chữ mô phỏng (ở dưới cùng, phát sáng nhẹ) */
+    #controls {
+        position: absolute;
+        bottom: 80px;
+        right: 30px; 
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 10px 20px;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 🌍 Dòng chữ dưới cùng */
     #footer-text {
       position: absolute;
       bottom: 8px;
@@ -54,101 +70,153 @@
       font-size: 13px;
       color: #f2f2f2;
       font-weight: 400;
-      text-shadow: 
-        0 0 3px #00ffff,
-        0 0 6px #00ffff;
+      text-shadow: 0 0 3px #00ffff, 0 0 6px #00ffff;
       z-index: 200;
       letter-spacing: 0.3px;
     }
   </style>
 </head>
-
 <body>
+  
   <div id="scene-container"></div>
-  <button id="toggle-button">⏸️ Dừng</button>
+  
+  <div id="controls"> 
+    <label for="speedSlider" style="color: white; margin-right: 10px;">Tốc độ mô phỏng:</label>
+    <input type="range" id="speedSlider" min="0.1" max="10" value="1" step="0.1">
+  </div>
 
-  <!-- 🌍 Dòng chữ dưới cùng -->
+  <button class="control-btn" id="toggleButton">⏸️ Dừng</button>
+
+  <!-- 🌍 Dòng chữ -->
   <div id="footer-text">
-    Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng<br>
-    Tác giả: Nguyễn Đức Anh lớp 9A | Người hướng dẫn: Nguyễn Duy Quyền
+    Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng <br>
+    Tác giả: Nguyễn Đức Anh | Người hướng dẫn: Nguyễn Duy Quyền
   </div>
 
   <script>
-    // 🎬 Tạo scene, camera, renderer
+    // --- KHỞI TẠO THREE.JS ---
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000); 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
+    
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById("scene-container").appendChild(renderer.domElement);
-
-    // 💡 Ánh sáng
-    const light = new THREE.PointLight(0xffffff, 1.5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0x333333));
-
-    // 🌞 Mặt trời
-    const sunTexture = new THREE.TextureLoader().load('https://threejsfundamentals.org/threejs/resources/images/sun.jpg');
-    const sun = new THREE.Mesh(
-      new THREE.SphereGeometry(2, 32, 32),
-      new THREE.MeshBasicMaterial({ map: sunTexture })
-    );
-    scene.add(sun);
-
-    // 🌍 Trái đất
-    const earthTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/earth.jpg');
-    const earth = new THREE.Mesh(
-      new THREE.SphereGeometry(0.6, 32, 32),
-      new THREE.MeshStandardMaterial({ map: earthTexture })
-    );
-    const earthOrbit = new THREE.Object3D();
-    scene.add(earthOrbit);
-    earthOrbit.add(earth);
-    earth.position.x = 6;
-
-    // 🌙 Mặt trăng
-    const moonTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/moon_1024.jpg');
-    const moon = new THREE.Mesh(
-      new THREE.SphereGeometry(0.2, 32, 32),
-      new THREE.MeshStandardMaterial({ map: moonTexture })
-    );
-    const moonOrbit = new THREE.Object3D();
-    earthOrbit.add(moonOrbit);
-    moonOrbit.add(moon);
-    moon.position.x = 1;
-
-    // 🎥 Camera
-    camera.position.set(10, 5, 10);
-
-    // 🎮 Orbit controls
+    document.getElementById('scene-container').appendChild(renderer.domElement);
+    
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-    // 🌀 Chuyển động
-    let running = true;
-    document.getElementById("toggle-button").addEventListener("click", () => {
-      running = !running;
-      document.getElementById("toggle-button").textContent = running ? "⏸️ Dừng" : "▶️ Tiếp tục";
+    controls.enableDamping = true; 
+    controls.dampingFactor = 0.05;
+    
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    // --- CÁC THAM SỐ ---
+    const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
+    const ORBIT_RADIUS = 30; 
+    const MOON_ORBIT_RADIUS = 5; 
+    const BASE_SPEED = 0.0003; 
+    const SUN_ROT_SPEED = 0.00003; 
+    const EARTH_ORBIT_SPEED = BASE_SPEED * 1; 
+    const EARTH_ROT_SPEED = BASE_SPEED * 365.25; 
+    const MOON_ORBIT_SPEED = BASE_SPEED * 12.17; 
+    let simulationSpeed = 1.0; 
+    let isRunning = true;
+    
+    const textureLoader = new THREE.TextureLoader();
+
+    // --- MẶT TRỜI ---
+    const sunGeometry = new THREE.SphereGeometry(4, 32, 32); 
+    const sunMaterial = new THREE.MeshBasicMaterial({ 
+        map: textureLoader.load('sun.jpg'),
+        color: 0xffffee 
+    });
+    const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+    scene.add(sun);
+    
+    const light = new THREE.PointLight(0xffffff, 8, 0);
+    sun.add(light); 
+    scene.add(new THREE.AmbientLight(0x050505));
+
+    // --- TRÁI ĐẤT ---
+    const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+    const earthMaterial = new THREE.MeshPhongMaterial({ 
+        map: textureLoader.load('earth.jpg'), // ✅ Ảnh Trái Đất
+        specular: 0x333333,
+        shininess: 15
+    });
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    
+    const earthOrbit = new THREE.Object3D();
+    scene.add(earthOrbit); 
+
+    const earthTilt = new THREE.Object3D();
+    earthTilt.position.set(ORBIT_RADIUS, 0, 0); 
+    earthTilt.rotation.x = EARTH_TILT_RAD; 
+    
+    earthOrbit.add(earthTilt); 
+    earthTilt.add(earthMesh); 
+
+    // --- MẶT TRĂNG ---
+    const moonGeometry = new THREE.SphereGeometry(0.4, 32, 32);
+    const moonMaterial = new THREE.MeshPhongMaterial({
+        map: textureLoader.load('moon.jpg')
+    });
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    moon.position.set(MOON_ORBIT_RADIUS, 0, 0); 
+    
+    const moonOrbit = new THREE.Object3D();
+    moonOrbit.add(moon);
+    earthMesh.add(moonOrbit); 
+
+    // --- QUỸ ĐẠO ---
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.1 });
+    const earthOrbitGeometry = new THREE.RingGeometry(ORBIT_RADIUS - 0.05, ORBIT_RADIUS + 0.05, 128);
+    const earthOrbitLine = new THREE.Line(earthOrbitGeometry, orbitMaterial);
+    earthOrbitLine.rotation.x = Math.PI / 2; 
+    scene.add(earthOrbitLine);
+
+    const moonOrbitGeometry = new THREE.RingGeometry(MOON_ORBIT_RADIUS - 0.02, MOON_ORBIT_RADIUS + 0.02, 64);
+    const moonOrbitLine = new THREE.Line(moonOrbitGeometry, orbitMaterial);
+    moonOrbitLine.rotation.x = Math.PI / 2; 
+    earthMesh.add(moonOrbitLine); 
+
+    // --- CAMERA ---
+    camera.position.set(0, ORBIT_RADIUS * 1.5, ORBIT_RADIUS * 1.5); 
+    camera.lookAt(sun.position); 
+
+    // --- ANIMATION LOOP ---
     function animate() {
       requestAnimationFrame(animate);
-      if (running) {
-        earthOrbit.rotation.y += 0.01;
-        moonOrbit.rotation.y += 0.03;
-        earth.rotation.y += 0.02;
+      controls.update(); 
+
+      if (isRunning) {
+        const speed = simulationSpeed; 
+        sun.rotation.y += SUN_ROT_SPEED * speed;
+        earthMesh.rotation.y += EARTH_ROT_SPEED * speed;
+        moon.rotation.y += EARTH_ROT_SPEED * speed; 
+        earthOrbit.rotation.y += EARTH_ORBIT_SPEED * speed;
+        moonOrbit.rotation.y += MOON_ORBIT_SPEED * speed;
       }
-      controls.update();
+
       renderer.render(scene, camera);
     }
-
+    
     animate();
 
-    // 🔄 Khi thay đổi kích thước cửa sổ
-    window.addEventListener("resize", () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+    // --- NÚT ĐIỀU KHIỂN ---
+    const toggleButton = document.getElementById('toggleButton');
+    const speedSlider = document.getElementById('speedSlider');
+
+    toggleButton.addEventListener('click', () => {
+      isRunning = !isRunning;
+      toggleButton.textContent = isRunning ? '⏸️ Dừng' : '▶️ Tiếp tục';
+    });
+    
+    speedSlider.addEventListener('input', (event) => {
+        simulationSpeed = parseFloat(event.target.value); 
     });
   </script>
 </body>
 </html>
-
