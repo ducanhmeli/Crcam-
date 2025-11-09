@@ -24,48 +24,48 @@
       height: 100%;
     }
 
-    /* 🎛️ Nút dừng / tiếp tục */
+    /* Nút Dừng / Tiếp tục (giữ nguyên vị trí) */
     #toggle-button {
       position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: rgba(0, 0, 0, 0.5);
-      color: white;
-      border: 1px solid cyan;
-      border-radius: 6px;
+      bottom: 60px;
+      right: 30px;
+      background-color: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 8px;
+      padding: 10px 25px;
+      font-size: 1.2em;
       cursor: pointer;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
       z-index: 100;
-      text-shadow: 0 0 8px cyan;
     }
 
     #toggle-button:hover {
-      background-color: rgba(0, 255, 255, 0.2);
+      background-color: rgba(255, 255, 255, 0.4);
+      color: black;
     }
 
-    /* 🌟 Dòng chữ chạy dưới cùng */
+    /* 🌟 Dòng chữ chạy ở DƯỚI TỊT màn hình */
     #footer-container {
       position: absolute;
       bottom: 5px;
       width: 100%;
       overflow: hidden;
       z-index: 200;
+      text-align: center;
     }
 
     #footer-text {
       display: inline-block;
       white-space: nowrap;
+      color: #00ffff;
       font-size: 13px;
-      color: #f2f2f2;
       font-weight: 400;
-      text-shadow: 0 0 3px #00ffff, 0 0 6px #00ffff;
-      letter-spacing: 0.3px;
+      text-shadow: 0 0 6px #00ffff, 0 0 12px #00ffff;
       animation: scrollText 20s linear infinite;
     }
 
-    /* 👇 Hiệu ứng chạy ngang */
     @keyframes scrollText {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
@@ -75,30 +75,32 @@
 
 <body>
   <div id="scene-container"></div>
+
+  <!-- Giữ nguyên nút Dừng -->
   <button id="toggle-button">⏸️ Dừng</button>
 
-  <!-- 🌍 Dòng chữ chạy -->
+  <!-- 🌍 Dòng chữ chạy ở dưới -->
   <div id="footer-container">
     <div id="footer-text">
-      🌍 Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng | 
+      🌍 Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng |
       Tác giả: Nguyễn Đức Anh | Người hướng dẫn: Nguyễn Duy Quyền 🌙
     </div>
   </div>
 
   <script>
-    // 🎬 Tạo scene, camera, renderer
+    // --- KHỞI TẠO THREE.JS ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    document.getElementById("scene-container").appendChild(renderer.domElement);
+    document.getElementById('scene-container').appendChild(renderer.domElement);
 
-    // 💡 Ánh sáng
+    // Ánh sáng
     const light = new THREE.PointLight(0xffffff, 1.5);
     scene.add(light);
     scene.add(new THREE.AmbientLight(0x333333));
 
-    // 🌞 Mặt trời
+    // Mặt Trời
     const sunTexture = new THREE.TextureLoader().load('https://threejsfundamentals.org/threejs/resources/images/sun.jpg');
     const sun = new THREE.Mesh(
       new THREE.SphereGeometry(2, 32, 32),
@@ -106,7 +108,7 @@
     );
     scene.add(sun);
 
-    // 🌍 Trái đất
+    // Trái Đất
     const earthTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/land_ocean_ice_cloud_2048.jpg');
     const earth = new THREE.Mesh(
       new THREE.SphereGeometry(0.6, 32, 32),
@@ -117,7 +119,7 @@
     earthOrbit.add(earth);
     earth.position.x = 6;
 
-    // 🌙 Mặt trăng
+    // Mặt Trăng
     const moonTexture = new THREE.TextureLoader().load('https://threejs.org/examples/textures/moon_1024.jpg');
     const moon = new THREE.Mesh(
       new THREE.SphereGeometry(0.2, 32, 32),
@@ -128,19 +130,19 @@
     moonOrbit.add(moon);
     moon.position.x = 1;
 
-    // 🎥 Camera
+    // Camera
     camera.position.set(10, 5, 10);
-
-    // 🎮 Orbit controls
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-    // 🌀 Chuyển động
+    // Nút dừng / tiếp tục
     let running = true;
-    document.getElementById("toggle-button").addEventListener("click", () => {
+    const toggleButton = document.getElementById("toggle-button");
+    toggleButton.addEventListener("click", () => {
       running = !running;
-      document.getElementById("toggle-button").textContent = running ? "⏸️ Dừng" : "▶️ Tiếp tục";
+      toggleButton.textContent = running ? "⏸️ Dừng" : "▶️ Tiếp tục";
     });
 
+    // Animation
     function animate() {
       requestAnimationFrame(animate);
       if (running) {
@@ -154,7 +156,7 @@
 
     animate();
 
-    // 🔄 Khi thay đổi kích thước cửa sổ
+    // Cập nhật khi thay đổi kích thước
     window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
