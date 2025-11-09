@@ -102,7 +102,7 @@ function init() {
   scene.add(sun);
 
   // Trái Đất
-  const earthTexture = new THREE.TextureLoader().load('earth.jpg');
+  const earthTexture = new THREE.TextureLoader().load('eartg.gif');
   const earthMat = new THREE.MeshPhongMaterial({
     map: earthTexture,
     shininess: 10
@@ -110,7 +110,7 @@ function init() {
   earth = new THREE.Mesh(new THREE.SphereGeometry(1.5, 64, 64), earthMat);
 
   // Mặt Trăng
-  const moonTexture = new THREE.TextureLoader().load('moon.jpg');
+  const moonTexture = new THREE.TextureLoader().load('moon.gif');
   const moonMat = new THREE.MeshPhongMaterial({
     map: moonTexture,
     shininess: 5
