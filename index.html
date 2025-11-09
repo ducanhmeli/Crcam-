@@ -89,17 +89,17 @@
     // --- TEXTURE LOADER ---
     const textureLoader = new THREE.TextureLoader();
 
-    // 🌌 ẢNH NỀN VŨ TRỤ (thêm vào đây)
+    // 🌌 ẢNH NỀN VŨ TRỤ
     scene.background = textureLoader.load('sao.jpg'); 
-    // 
+    // 👉 Đặt file ảnh nền vũ trụ (space_bg.jpg) trong cùng thư mục với file HTML này
 
-    // --- CÁC THAM SỐ ---
+    // --- CÁC THAM SỐ VẬT LÝ & TỐC ĐỘ ---
     const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
     const ORBIT_RADIUS = 30; 
     const MOON_ORBIT_RADIUS = 5; 
     
     const BASE_SPEED = 0.0002; 
-    const SUN_ROT_SPEED = 0.00006; // Mặt Trời quay nhanh hơn
+    const SUN_ROT_SPEED = 0.00002; // 🌞 giữ tốc độ quay chậm ban đầu
 
     const EARTH_ORBIT_SPEED = BASE_SPEED * 1; 
     const EARTH_ROT_SPEED = BASE_SPEED * 365.25; 
@@ -126,7 +126,7 @@
     // --- TRÁI ĐẤT ---
     const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
     const earthMaterial = new THREE.MeshPhongMaterial({ 
-        map: textureLoader.load('eartg.gif'),
+        map: textureLoader.load('earth.jpg'),
         specular: 0x333333,
         shininess: 15
     });
