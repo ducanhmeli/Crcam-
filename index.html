@@ -12,6 +12,9 @@
     body {
       margin: 0;
       height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       overflow: hidden;
       background-color: #000;
     }
@@ -25,6 +28,7 @@
       position: absolute;
       bottom: 30px;
       right: 30px; 
+      transform: translateX(0%); 
       background-color: rgba(255, 255, 255, 0.2);
       color: #fff;
       border: 2px solid #fff;
@@ -43,16 +47,17 @@
     }
 
     #controls {
-      position: absolute;
-      bottom: 80px;
-      right: 30px; 
-      background-color: rgba(0, 0, 0, 0.4);
-      padding: 10px 20px;
-      border-radius: 8px;
-      backdrop-filter: blur(4px);
-      z-index: 100;
-      display: flex;
-      align-items: center;
+        position: absolute;
+        bottom: 80px;
+        right: 30px; 
+        transform: translateX(0%); 
+        background-color: rgba(0, 0, 0, 0.4);
+        padding: 10px 20px;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        display: flex;
+        align-items: center;
     }
   </style>
 </head>
@@ -86,29 +91,28 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- TEXTURE LOADER ---
-    const textureLoader = new THREE.TextureLoader();
-
-    // 🌌 ẢNH NỀN VŨ TRỤ
-    scene.background = textureLoader.load('sao.jpg'); 
-    // 👉 Đặt file ảnh nền vũ trụ (space_bg.jpg) trong cùng thư mục với file HTML này
-
-    // --- CÁC THAM SỐ VẬT LÝ & TỐC ĐỘ ---
+    // --- CÁC THAM SỐ VẬT LÝ VÀ TỐC ĐỘ (ĐÃ CẬP NHẬT) ---
     const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
     const ORBIT_RADIUS = 30; 
     const MOON_ORBIT_RADIUS = 5; 
     
-    const BASE_SPEED = 0.0002; 
-    const SUN_ROT_SPEED = 0.00002; // 🌞 giữ tốc độ quay chậm ban đầu
+    const BASE_SPEED = 0.0003; 
+    const SUN_ROT_SPEED = 0.00003; 
 
     const EARTH_ORBIT_SPEED = BASE_SPEED * 1; 
     const EARTH_ROT_SPEED = BASE_SPEED * 365.25; 
-    const MOON_ORBIT_SPEED = BASE_SPEED * 10; 
+    const MOON_ORBIT_SPEED = BASE_SPEED * 12.17; 
 
     let simulationSpeed = 1.0; 
     let isRunning = true;
+    
+    const textureLoader = new THREE.TextureLoader();
 
-    // --- MẶT TRỜI ---
+    // 🌌 ẢNH NỀN VŨ TRỤ
+    scene.background = textureLoader.load('sao.jpg');
+    // 👉  Đặt file space_bg.jpg trong cùng thư mục với file HTML
+
+    // --- TẠO VẬT THỂ 3D VÀ ÁNH SÁNG ---
     const sunGeometry = new THREE.SphereGeometry(4, 32, 32); 
     const sunMaterial = new THREE.MeshBasicMaterial({ 
         map: textureLoader.load('sun.jpg'),
@@ -117,13 +121,12 @@
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sun);
     
-    const light = new THREE.PointLight(0xffffff, 8, 0);
+    const light = new THREE.PointLight(0xffffff, 8, 0); 
     sun.add(light); 
     
     const ambientLight = new THREE.AmbientLight(0x050505); 
     scene.add(ambientLight);
 
-    // --- TRÁI ĐẤT ---
     const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
     const earthMaterial = new THREE.MeshPhongMaterial({ 
         map: textureLoader.load('earth.jpg'),
@@ -142,7 +145,6 @@
     earthOrbit.add(earthTilt); 
     earthTilt.add(earthMesh); 
 
-    // --- MẶT TRĂNG ---
     const moonGeometry = new THREE.SphereGeometry(0.4, 32, 32);
     const moonMaterial = new THREE.MeshPhongMaterial({
         map: textureLoader.load('moon.jpg')
@@ -152,9 +154,8 @@
     
     const moonOrbit = new THREE.Object3D();
     moonOrbit.add(moon);
-    earthOrbit.add(moonOrbit); 
+    earthMesh.add(moonOrbit); 
 
-    // --- VẼ QUỸ ĐẠO ---
     const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.1 });
     
     const earthOrbitGeometry = new THREE.RingGeometry(ORBIT_RADIUS - 0.05, ORBIT_RADIUS + 0.05, 128);
@@ -167,20 +168,18 @@
     moonOrbitLine.rotation.x = Math.PI / 2; 
     earthMesh.add(moonOrbitLine); 
 
-    // --- CAMERA ---
     camera.position.set(0, ORBIT_RADIUS * 1.5, ORBIT_RADIUS * 1.5); 
     camera.lookAt(sun.position); 
 
-    // --- ANIMATION LOOP ---
     function animate() {
       requestAnimationFrame(animate);
       controls.update(); 
 
       if (isRunning) {
         const speed = simulationSpeed; 
-
         sun.rotation.y += SUN_ROT_SPEED * speed;
         earthMesh.rotation.y += EARTH_ROT_SPEED * speed;
+        moon.rotation.y += EARTH_ROT_SPEED * speed; 
         earthOrbit.rotation.y += EARTH_ORBIT_SPEED * speed;
         moonOrbit.rotation.y += MOON_ORBIT_SPEED * speed;
       }
@@ -190,7 +189,6 @@
     
     animate();
 
-    // --- ĐIỀU KHIỂN ---
     const toggleButton = document.getElementById('toggleButton');
     const speedSlider = document.getElementById('speedSlider');
 
@@ -202,6 +200,7 @@
     speedSlider.addEventListener('input', (event) => {
         simulationSpeed = parseFloat(event.target.value); 
     });
+    
   </script>
 </body>
 </html>
