@@ -28,7 +28,6 @@
       position: absolute;
       bottom: 30px;
       right: 30px; 
-      transform: translateX(0%); 
       background-color: rgba(255, 255, 255, 0.2);
       color: #fff;
       border: 2px solid #fff;
@@ -47,17 +46,16 @@
     }
 
     #controls {
-        position: absolute;
-        bottom: 80px;
-        right: 30px; 
-        transform: translateX(0%); 
-        background-color: rgba(0, 0, 0, 0.4);
-        padding: 10px 20px;
-        border-radius: 8px;
-        backdrop-filter: blur(4px);
-        z-index: 100;
-        display: flex;
-        align-items: center;
+      position: absolute;
+      bottom: 80px;
+      right: 30px; 
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 10px 20px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
     }
   </style>
 </head>
@@ -75,6 +73,11 @@
   <script>
     // --- KHỞI TẠO THREE.JS ---
     const scene = new THREE.Scene();
+
+    // 🌌 THÊM ẢNH NỀN KHÔNG GIAN
+    const textureLoader = new THREE.TextureLoader();
+    scene.background = textureLoader.load('sao.jpg'); // <--- Ảnh nền
+
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000); 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     
@@ -91,14 +94,13 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- CÁC THAM SỐ VẬT LÝ VÀ TỐC ĐỘ (ĐÃ CẬP NHẬT) ---
+    // --- CÁC THAM SỐ ---
     const EARTH_TILT_RAD = 23.5 * Math.PI / 180;
     const ORBIT_RADIUS = 30; 
     const MOON_ORBIT_RADIUS = 5; 
     
     const BASE_SPEED = 0.0003; 
     const SUN_ROT_SPEED = 0.00003; 
-
     const EARTH_ORBIT_SPEED = BASE_SPEED * 1; 
     const EARTH_ROT_SPEED = BASE_SPEED * 365.25; 
     const MOON_ORBIT_SPEED = BASE_SPEED * 12.17; 
@@ -106,13 +108,8 @@
     let simulationSpeed = 1.0; 
     let isRunning = true;
     
-    const textureLoader = new THREE.TextureLoader();
-
-    // 🌌 ẢNH NỀN VŨ TRỤ
-    scene.background = textureLoader.load('sao.jpg');
-    // 👉  Đặt file space_bg.jpg trong cùng thư mục với file HTML
-
-    // --- TẠO VẬT THỂ 3D VÀ ÁNH SÁNG ---
+    // --- TẠO VẬT THỂ ---
+    // Mặt trời
     const sunGeometry = new THREE.SphereGeometry(4, 32, 32); 
     const sunMaterial = new THREE.MeshBasicMaterial({ 
         map: textureLoader.load('sun.jpg'),
@@ -121,12 +118,13 @@
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     scene.add(sun);
     
-    const light = new THREE.PointLight(0xffffff, 8, 0); 
+    const light = new THREE.PointLight(0xffffff, 8, 0);
     sun.add(light); 
     
     const ambientLight = new THREE.AmbientLight(0x050505); 
     scene.add(ambientLight);
 
+    // Trái đất
     const earthGeometry = new THREE.SphereGeometry(1.5, 32, 32);
     const earthMaterial = new THREE.MeshPhongMaterial({ 
         map: textureLoader.load('earth.jpg'),
@@ -141,10 +139,10 @@
     const earthTilt = new THREE.Object3D();
     earthTilt.position.set(ORBIT_RADIUS, 0, 0); 
     earthTilt.rotation.x = EARTH_TILT_RAD; 
-    
     earthOrbit.add(earthTilt); 
     earthTilt.add(earthMesh); 
 
+    // Mặt trăng
     const moonGeometry = new THREE.SphereGeometry(0.4, 32, 32);
     const moonMaterial = new THREE.MeshPhongMaterial({
         map: textureLoader.load('moon.jpg')
@@ -156,8 +154,8 @@
     moonOrbit.add(moon);
     earthMesh.add(moonOrbit); 
 
+    // Quỹ đạo
     const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.1 });
-    
     const earthOrbitGeometry = new THREE.RingGeometry(ORBIT_RADIUS - 0.05, ORBIT_RADIUS + 0.05, 128);
     const earthOrbitLine = new THREE.Line(earthOrbitGeometry, orbitMaterial);
     earthOrbitLine.rotation.x = Math.PI / 2; 
@@ -168,9 +166,11 @@
     moonOrbitLine.rotation.x = Math.PI / 2; 
     earthMesh.add(moonOrbitLine); 
 
+    // Camera
     camera.position.set(0, ORBIT_RADIUS * 1.5, ORBIT_RADIUS * 1.5); 
     camera.lookAt(sun.position); 
 
+    // --- VÒNG LẶP MÔ PHỎNG ---
     function animate() {
       requestAnimationFrame(animate);
       controls.update(); 
@@ -189,6 +189,7 @@
     
     animate();
 
+    // --- ĐIỀU KHIỂN ---
     const toggleButton = document.getElementById('toggleButton');
     const speedSlider = document.getElementById('speedSlider');
 
