@@ -45,20 +45,30 @@
       background-color: rgba(0, 255, 255, 0.2);
     }
 
-    /* 🌟 Dòng chữ mô phỏng (ở dưới cùng, phát sáng nhẹ) */
-    #footer-text {
+    /* 🌟 Dòng chữ chạy dưới cùng */
+    #footer-container {
       position: absolute;
-      bottom: 8px;
+      bottom: 5px;
       width: 100%;
-      text-align: center;
+      overflow: hidden;
+      z-index: 200;
+    }
+
+    #footer-text {
+      display: inline-block;
+      white-space: nowrap;
       font-size: 13px;
       color: #f2f2f2;
       font-weight: 400;
-      text-shadow: 
-        0 0 3px #00ffff,
-        0 0 6px #00ffff;
-      z-index: 200;
+      text-shadow: 0 0 3px #00ffff, 0 0 6px #00ffff;
       letter-spacing: 0.3px;
+      animation: scrollText 20s linear infinite;
+    }
+
+    /* 👇 Hiệu ứng chạy ngang */
+    @keyframes scrollText {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 </head>
@@ -67,10 +77,12 @@
   <div id="scene-container"></div>
   <button id="toggle-button">⏸️ Dừng</button>
 
-  <!-- 🌍 Dòng chữ dưới cùng -->
-  <div id="footer-text">
-    Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng<br>
-    Tác giả: Nguyễn Đức Anh | Người hướng dẫn: Nguyễn Duy Quyền
+  <!-- 🌍 Dòng chữ chạy -->
+  <div id="footer-container">
+    <div id="footer-text">
+      🌍 Mô phỏng chuyển động quay của Hệ Mặt Trời - Trái Đất - Mặt Trăng | 
+      Tác giả: Nguyễn Đức Anh | Người hướng dẫn: Nguyễn Duy Quyền 🌙
+    </div>
   </div>
 
   <script>
