@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng Hệ Mặt Trời - Pha Mặt Trăng</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-image: url('sao.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    .container {
+      font-size: 10px;
+      width: 40em;
+      height: 40em;
+      position: relative;
+    }
+
+    .sun {
+      position: absolute;
+      top: 15em;
+      left: 15em;
+      width: 10em;
+      height: 10em;
+      border-radius: 50%;
+      background-image: url('sun.jpg');
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 3em yellow, 0 0 6em orange;
+      animation: spin 20s linear infinite;
+    }
+
+    .earth,
+    .moon {
+      position: absolute;
+      border-style: solid;
+      border-color: rgba(255, 255, 255, 0.3) transparent transparent transparent;
+      border-width: 0.1em 0.1em 0 0;
+      border-radius: 50%;
+    }
+
+    .earth {
+      top: 5em;
+      left: 5em;
+      width: 30em;
+      height: 30em;
+      animation: orbit 36.5s linear infinite;
+    }
+
+    .moon {
+      top: 0;
+      right: 0;
+      width: 8em;
+      height: 8em;
+      animation: orbit 2.7s linear infinite;
+    }
+
+    .earth::before {
+      content: '';
+      position: absolute;
+      top: 2.8em;
+      right: 2.8em;
+      width: 3em;
+      height: 3em;
+      background-image: url('eartg.gif');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      box-shadow: 0 0 1em cyan;
+      z-index: 1;
+      animation: selfSpin 10s linear infinite;
+    }
+
+    .moon::before {
+      content: '';
+      position: absolute;
+      top: 0.8em;
+      right: 0.2em;
+      width: 1.2em;
+      height: 1.2em;
+      background-image: url('moon.gif');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      box-shadow: 0 0 0.5em white;
+      transition: filter 0.3s linear;
+    }
+
+    .shadow-fixed {
+      position: absolute;
+      top: 2.8em;
+      right: 2.8em;
+      width: 3em;
+      height: 3em;
+      border-radius: 50%;
+      background: linear-gradient(to left, rgba(0, 0, 0, 0.6) 50%, rgba(0,0,0,0) 50%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @keyframes orbit { to { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes selfSpin { to { transform: rotate(360deg); } }
+
+    /* 💎 Bảng điều khiển Glassmorphism */
+    #controlPanel {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 0.8em 1em;
+      border-radius: 0.8em;
+      font-size: 0.75em;
+      width: 160px;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 200;
+      transition: all 0.3s ease;
+    }
+
+    #controlPanel:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      border-color: rgba(0, 255, 255, 0.4);
+    }
+
+    #controlPanel h3 {
+      margin: 0 0 0.5em 0;
+      font-size: 0.95em;
+      text-align: center;
+      font-weight: 600;
+      color: #aefcff;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding-bottom: 0.3em;
+    }
+
+    .control-group {
+      margin: 0.6em 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.2em;
+      color: #e8faff;
+      font-weight: 500;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00d8ff;
+      cursor: pointer;
+    }
+
+    #speedLabel {
+      display: block;
+      text-align: right;
+      font-weight: bold;
+      color: #9effff;
+      margin-top: 0.1em;
+    }
+
+    #dataBox {
+      margin-top: 0.4em;
+      font-size: 0.7em;
+      background: rgba(0, 255, 255, 0.08);
+      padding: 0.4em;
+      border-radius: 0.4em;
+      white-space: pre;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    #note {
+      position: fixed;
+      bottom: 8px;
+      right: 12px;
+      font-size: 0.8em;
+      color: rgba(255, 255, 255, 0.85);
+      font-style: italic;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.3em 0.6em;
+      border-radius: 0.5em;
+      backdrop-filter: blur(4px);
+      z-index: 101;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="sun"></div>
+    <div class="earth">
+      <div class="moon"></div>
+      <div class="shadow-fixed"></div>
+    </div>
+  </div>
+
+  <!-- ⚙️ Bảng điều khiển Glassmorphism -->
+  <div id="controlPanel">
+    <h3>🛰️ Điều khiển</h3>
+
+    <div class="control-group">
+      <label for="speedRange">Tốc độ</label>
+      <input type="range" id="speedRange" min="0.2" max="20" step="0.1" value="1">
+      <span id="speedLabel">1.0x</span>
+    </div>
+
+    <div class="control-group">
+      <label><input type="checkbox" id="showOrbit" checked> Quỹ đạo</label>
+    </div>
+
+    <div class="control-group">
+      <label><input type="checkbox" id="showData"> Dữ liệu</label>
+    </div>
+
+    <div id="dataBox" style="display:none;">
+      t=0.0s<br>θ=0°<br>Pha: 🌑 Trăng non
+    </div>
+  </div>
+
+  <p id="note">🔭 Mô hình khái niệm – không theo tỷ lệ vật lý thực.</p>
+
+  <script>
+    const speedSlider = document.getElementById('speedRange');
+    const speedLabel = document.getElementById('speedLabel');
+    const showOrbit = document.getElementById('showOrbit');
+    const showData = document.getElementById('showData');
+    const dataBox = document.getElementById('dataBox');
+    const earth = document.querySelector('.earth');
+    const moon = document.querySelector('.moon');
+
+    let baseEarthOrbit = 36.5;
+    let baseMoonOrbit = 2.7;
+    let startTime = performance.now();
+
+    function updateSpeed() {
+      const speed = parseFloat(speedSlider.value);
+      speedLabel.textContent = speed.toFixed(1) + "x";
+      earth.style.animationDuration = (baseEarthOrbit / speed) + "s";
+      moon.style.animationDuration = (baseMoonOrbit / speed) + "s";
+    }
+
+    speedSlider.addEventListener('input', updateSpeed);
+    updateSpeed();
+
+    showOrbit.addEventListener('change', () => {
+      const borderColor = showOrbit.checked ? "rgba(255,255,255,0.3)" : "transparent";
+      earth.style.borderColor = borderColor + " transparent transparent transparent";
+      moon.style.borderColor = borderColor + " transparent transparent transparent";
+    });
+
+    showData.addEventListener('change', () => {
+      dataBox.style.display = showData.checked ? 'block' : 'none';
+    });
+
+    function getMoonPhaseSymbol(angle) {
+      if (angle < 45 || angle >= 315) return "🌑 Trăng non";
+      if (angle < 135) return "🌓 Bán nguyệt đầu";
+      if (angle < 225) return "🌕 Trăng tròn";
+      return "🌗 Bán nguyệt cuối";
+    }
+
+    function updateData() {
+      if (!showData.checked) return;
+      const now = (performance.now() - startTime) / 1000;
+      const speed = parseFloat(speedSlider.value);
+
+      const earthAngle = ((now * 360) / (baseEarthOrbit / speed)) % 360;
+      const moonAngle = ((now * 360) / (baseMoonOrbit / speed)) % 360;
+
+      const phaseAngle = (moonAngle - earthAngle + 360) % 360;
+      const phase = getMoonPhaseSymbol(phaseAngle);
+
+      // Điều chỉnh độ sáng Mặt Trăng
+      const styleSheet = document.styleSheets[0].cssRules;
+      for (let rule of styleSheet) {
+        if (rule.selectorText === ".moon::before") {
+          rule.style.filter = `brightness(${0.5 + 0.5 * Math.cos(phaseAngle * Math.PI / 180)})`;
+        }
+      }
+
+      dataBox.innerHTML =
+        `t=${now.toFixed(1)}s<br>` +
+        `θE=${earthAngle.toFixed(1)}°<br>` +
+        `θM=${moonAngle.toFixed(1)}°<br>` +
+        `Pha: ${phase}`;
+    }
+
+    setInterval(updateData, 100);
+  </script>
+</body>
+</html>
